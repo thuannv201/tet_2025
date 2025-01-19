@@ -1,0 +1,35 @@
+.popup {
+    width: 250px;
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.popup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.popup h1 {
+    font-size: 1.5em;
+    margin: 0;
+    padding: 0;
+}
+
+.popup p {
+    font-size: 1.2em;
+    margin: 0;
+    padding: 0;
+}
+
+.popup .time_left {
+    font-size: 1.2em;
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    flex-direction: column;
+}
