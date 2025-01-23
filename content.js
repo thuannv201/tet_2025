@@ -7,7 +7,7 @@ function handleFireWorks() {
   canvas.id = "canvas-fireworks";
   fireworks.appendChild(canvas);
   isRunning = true;
-  Firework_1();
+  Firework();
 }
 
 function renderBtnFireWorks() {
@@ -20,7 +20,7 @@ function renderBtnFireWorks() {
   btn.addEventListener("click", handleFireWorks);
 
   const img = document.createElement("img");
-  img.src = chrome.runtime.getURL("images/fireworks.png");
+  img.src = chrome.runtime.getURL("images/fireworks.gif");
   img.alt = "img";
 
   btn.appendChild(img);
@@ -50,8 +50,7 @@ window.onload = function () {
   render();
 };
 
-//#region Fireworks 1
-function Firework_1() {
+function Firework() {
   window.requestAnimationFrame =
     window.requestAnimationFrame ||
     window.webkitRequestAnimationFrame ||
@@ -62,168 +61,39 @@ function Firework_1() {
       window.setTimeout(callback, 1000 / 60);
     };
 
-  let canvas,
-    ctx,
-    w,
-    h,
-    particles = [],
-    probability = 0.04,
-    xPoint,
-    yPoint;
-
-  function onLoad() {
-    canvas = document.getElementById("canvas-fireworks");
-    ctx = canvas.getContext("2d");
-    resizeCanvas();
-
-    window.requestAnimationFrame(updateWorld);
-  }
-
-  function resizeCanvas() {
-    if (canvas) {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-    }
-  }
-
-  function updateWorld() {
-    if (!isRunning) return;
-    console.log("updateWorld");
-    update();
-    paint();
-    window.requestAnimationFrame(updateWorld);
-  }
-
-  function update() {
-    if (particles.length < 500 && Math.random() < probability) {
-      createFirework();
-    }
-    let alive = [];
-    for (const element of particles) {
-      if (element.move()) {
-        alive.push(element);
-      }
-    }
-    particles = alive;
-  }
-
-  function paint() {
-    ctx.globalCompositeOperation = "source-over";
-    ctx.fillStyle = "rgba(0,0,0,0.2)";
-    ctx.fillRect(0, 0, w, h);
-    ctx.globalCompositeOperation = "lighter";
-    for (const element of particles) {
-      element.draw(ctx);
-    }
-  }
-
-  function createFirework() {
-    xPoint = Math.random() * (w - 200) + 100;
-    yPoint = Math.random() * (h - 200) + 100;
-    let nFire = Math.random() * 50 + 100;
-    let c =
-      "rgb(" +
-      ~~(Math.random() * 200 + 55) +
-      "," +
-      ~~(Math.random() * 200 + 55) +
-      "," +
-      ~~(Math.random() * 200 + 55) +
-      ")";
-    for (let i = 0; i < nFire; i++) {
-      let particle = new Particle();
-      particle.color = c;
-      let vy = Math.sqrt(25 - particle.vx * particle.vx);
-      if (Math.abs(particle.vy) > vy) {
-        particle.vy = particle.vy > 0 ? vy : -vy;
-      }
-      particles.push(particle);
-    }
-  }
-
-  function Particle() {
-    this.w = this.h = Math.random() * 4 + 1;
-
-    this.x = xPoint - this.w / 2;
-    this.y = yPoint - this.h / 2;
-
-    this.vx = (Math.random() - 0.5) * 10;
-    this.vy = (Math.random() - 0.5) * 10;
-
-    this.alpha = Math.random() * 0.5 + 0.5;
-  }
-
-  Particle.prototype = {
-    gravity: 0.05,
-    move: function () {
-      this.x += this.vx;
-      this.vy += this.gravity;
-      this.y += this.vy;
-      this.alpha -= 0.01;
-      return !(
-        this.x <= -this.w ||
-        this.x >= screen.width ||
-        this.y >= screen.height ||
-        this.alpha <= 0
-      );
-    },
-    draw: function (c) {
-      c.save();
-      c.beginPath();
-
-      c.translate(this.x + this.w / 2, this.y + this.h / 2);
-      c.arc(0, 0, this.w, 0, Math.PI * 2);
-      c.fillStyle = this.color;
-      c.globalAlpha = this.alpha;
-
-      c.closePath();
-      c.fill();
-      c.restore();
-    },
-  };
-  onLoad();
-}
-
-function Firework_2() {
-  window.requestAnimFrame = (function () {
-    return (
-      window.requestAnimationFrame ||
-      window.webkitRequestAnimationFrame ||
-      window.mozRequestAnimationFrame ||
-      function (callback) {
-        window.setTimeout(callback, 1000 / 60);
-      }
-    );
-  })();
-
-  let canvas = document.getElementById("canvas-fireworks"),
-    ctx = canvas.getContext("2d"),
-    cw = window.innerWidth,
-    ch = window.innerHeight,
-    fireworks = [],
-    particles = [],
-    hue = 120,
-    limiterTotal = 20,
-    limiterTick = 0,
-    timerTotal = 500,
-    timerTick = 0,
-    mousedown = false,
-    mx,
-    my;
-
+  const canvas = document.getElementById("canvas-fireworks");
+  const ctx = canvas.getContext("2d");
+  const cw = window.innerWidth;
+  const ch = window.innerHeight;
   canvas.width = cw;
   canvas.height = ch;
+  let particles1 = [];
+  let particles2 = [];
+  let fireworks = [];
+  const hue = 120;
+  const probability = 0.04; // For Firework_1
+  let timerTick = 0;
+  const timerTotal = 500;
+  let limiterTick = 0;
+  const limiterTotal = 20;
+  let mousedown = false;
+  let mx, my;
 
   function random(min, max) {
     return Math.random() * (max - min) + min;
   }
 
   function calculateDistance(p1x, p1y, p2x, p2y) {
-    let xDistance = p1x - p2x,
-      yDistance = p1y - p2y;
-    return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+    return Math.sqrt(Math.pow(p1x - p2x, 2) + Math.pow(p1y - p2y, 2));
   }
 
-  function Firework(sx, sy, tx, ty) {
+  function createParticles(x, y) {
+    for (let i = 0; i < 20; i++) {
+      particles2.push(new Particle2(x, y));
+    }
+  }
+
+  function Firework2(sx, sy, tx, ty) {
     this.x = sx;
     this.y = sy;
     this.sx = sx;
@@ -232,11 +102,7 @@ function Firework_2() {
     this.ty = ty;
     this.distanceToTarget = calculateDistance(sx, sy, tx, ty);
     this.distanceTraveled = 0;
-    this.coordinates = [];
-    this.coordinateCount = 3;
-    while (this.coordinateCount--) {
-      this.coordinates.push([this.x, this.y]);
-    }
+    this.coordinates = Array.from({ length: 3 }, () => [this.x, this.y]);
     this.angle = Math.atan2(ty - sy, tx - sx);
     this.speed = 2;
     this.acceleration = 1.05;
@@ -244,21 +110,14 @@ function Firework_2() {
     this.targetRadius = 1;
   }
 
-  // update firework
-  Firework.prototype.update = function (index) {
+  Firework2.prototype.update = function (index) {
     this.coordinates.pop();
     this.coordinates.unshift([this.x, this.y]);
 
-    if (this.targetRadius < 8) {
-      this.targetRadius += 0.3;
-    } else {
-      this.targetRadius = 1;
-    }
-
     this.speed *= this.acceleration;
+    let vx = Math.cos(this.angle) * this.speed;
+    let vy = Math.sin(this.angle) * this.speed;
 
-    let vx = Math.cos(this.angle) * this.speed,
-      vy = Math.sin(this.angle) * this.speed;
     this.distanceTraveled = calculateDistance(
       this.sx,
       this.sy,
@@ -275,7 +134,7 @@ function Firework_2() {
     }
   };
 
-  Firework.prototype.draw = function () {
+  Firework2.prototype.draw = function () {
     ctx.beginPath();
     ctx.moveTo(
       this.coordinates[this.coordinates.length - 1][0],
@@ -284,20 +143,12 @@ function Firework_2() {
     ctx.lineTo(this.x, this.y);
     ctx.strokeStyle = "hsl(" + hue + ", 100%, " + this.brightness + "%)";
     ctx.stroke();
-
-    ctx.beginPath();
-    ctx.stroke();
   };
 
-  function Particle(x, y) {
+  function Particle2(x, y) {
     this.x = x;
     this.y = y;
-    this.coordinates = [];
-    this.coordinateCount = 5;
-
-    while (this.coordinateCount--) {
-      this.coordinates.push([this.x, this.y]);
-    }
+    this.coordinates = Array.from({ length: 5 }, () => [this.x, this.y]);
     this.angle = random(0, Math.PI * 2);
     this.speed = random(1, 10);
     this.friction = 0.95;
@@ -308,7 +159,7 @@ function Firework_2() {
     this.decay = random(0.0075, 0.009);
   }
 
-  Particle.prototype.update = function (index) {
+  Particle2.prototype.update = function (index) {
     this.coordinates.pop();
     this.coordinates.unshift([this.x, this.y]);
     this.speed *= this.friction;
@@ -317,11 +168,11 @@ function Firework_2() {
     this.alpha -= this.decay;
 
     if (this.alpha <= this.decay) {
-      particles.splice(index, 1);
+      particles2.splice(index, 1);
     }
   };
 
-  Particle.prototype.draw = function () {
+  Particle2.prototype.draw = function () {
     ctx.beginPath();
     ctx.moveTo(
       this.coordinates[this.coordinates.length - 1][0],
@@ -336,52 +187,100 @@ function Firework_2() {
       "%, " +
       this.alpha +
       ")";
-
     ctx.stroke();
   };
 
-  function createParticles(x, y) {
-    let particleCount = 20;
-    while (particleCount--) {
-      particles.push(new Particle(x, y));
+  function Particle1(x, y, color) {
+    this.w = this.h = Math.random() * 4 + 1;
+    this.x = x - this.w / 2;
+    this.y = y - this.h / 2;
+    this.vx = (Math.random() - 0.5) * 10;
+    this.vy = (Math.random() - 0.5) * 10;
+    this.color = color;
+    this.alpha = Math.random() * 0.5 + 0.5;
+    this.gravity = 0.05;
+  }
+
+  Particle1.prototype.move = function () {
+    this.x += this.vx;
+    this.vy += this.gravity;
+    this.y += this.vy;
+    this.alpha -= 0.01;
+    return !(
+      this.x <= -this.w ||
+      this.x >= screen.width ||
+      this.y >= screen.height ||
+      this.alpha <= 0
+    );
+  };
+
+  Particle1.prototype.draw = function (c) {
+    c.save();
+    c.beginPath();
+    c.translate(this.x + this.w / 2, this.y + this.h / 2);
+    c.arc(0, 0, this.w, 0, Math.PI * 2);
+    c.fillStyle = this.color;
+    c.globalAlpha = this.alpha;
+    c.closePath();
+    c.fill();
+    c.restore();
+  };
+
+  function createFirework1() {
+    const xPoint = Math.random() * (cw - 200) + 100;
+    const yPoint = Math.random() * (ch - 200) + 100;
+    const nFire = Math.random() * 50 + 100;
+    const c =
+      "rgb(" +
+      ~~(Math.random() * 200 + 55) +
+      "," +
+      ~~(Math.random() * 200 + 55) +
+      "," +
+      ~~(Math.random() * 200 + 55) +
+      ")";
+    for (let i = 0; i < nFire; i++) {
+      let particle = new Particle1(xPoint, yPoint, c);
+      let vy = Math.sqrt(25 - particle.vx * particle.vx);
+      if (Math.abs(particle.vy) > vy) {
+        particle.vy = particle.vy > 0 ? vy : -vy;
+      }
+      particles1.push(particle);
     }
   }
 
-  function loop() {
+  function updateFireworks() {
     if (!isRunning) return;
-    requestAnimFrame(loop);
 
-    console.log("loop");
+    // Update Firework_1
+    if (particles1.length < 500 && Math.random() < probability) {
+      createFirework1();
+    }
+    particles1 = particles1.filter((p) => p.move());
 
-    hue += 0.5;
-
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-    ctx.fillRect(0, 0, cw, ch);
-    ctx.globalCompositeOperation = "lighter";
-
+    // Update Firework_2
     let i = fireworks.length;
     while (i--) {
       fireworks[i].draw();
       fireworks[i].update(i);
     }
 
-    let j = particles.length;
+    let j = particles2.length;
     while (j--) {
-      particles[j].draw();
-      particles[j].update(j);
+      particles2[j].draw();
+      particles2[j].update(j);
     }
 
+    // Handle Firework_2 creation
     if (timerTick >= timerTotal) {
       timerTick = 0;
     } else {
       let temp = timerTick % 400;
       if (temp <= 15) {
         fireworks.push(
-          new Firework(100, ch, random(190, 200), random(90, 100))
+          new Firework2(100, ch, random(190, 200), random(90, 100))
         );
         fireworks.push(
-          new Firework(
+          new Firework2(
             cw - 100,
             ch,
             random(cw - 200, cw - 190),
@@ -389,12 +288,10 @@ function Firework_2() {
           )
         );
       }
-
       let temp3 = temp / 10;
-
       if (temp > 319) {
         fireworks.push(
-          new Firework(
+          new Firework2(
             300 + (temp3 - 31) * 100,
             ch,
             300 + (temp3 - 31) * 100,
@@ -402,18 +299,28 @@ function Firework_2() {
           )
         );
       }
-
       timerTick++;
     }
 
     if (limiterTick >= limiterTotal) {
       if (mousedown) {
-        fireworks.push(new Firework(cw / 2, ch, mx, my));
+        fireworks.push(new Firework2(cw / 2, ch, mx, my));
         limiterTick = 0;
       }
     } else {
       limiterTick++;
     }
+
+    // Draw Firework_1
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "rgba(0,0,0,0.2)";
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.globalCompositeOperation = "lighter";
+    for (const particle of particles1) {
+      particle.draw(ctx);
+    }
+
+    requestAnimationFrame(updateFireworks);
   }
 
   canvas.addEventListener("mousemove", function (e) {
@@ -424,14 +331,12 @@ function Firework_2() {
   canvas.addEventListener("mousedown", function (e) {
     e.preventDefault();
     mousedown = true;
-    console.log("mousedown");
   });
 
   canvas.addEventListener("mouseup", function (e) {
     e.preventDefault();
     mousedown = false;
-    console.log("mouseup");
   });
 
-  loop();
+  updateFireworks();
 }
